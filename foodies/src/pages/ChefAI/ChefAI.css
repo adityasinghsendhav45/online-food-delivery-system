@@ -1,0 +1,17 @@
+.chef-ai-container {
+    max-width: 900px;
+}
+
+.recipe-card {
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.recipe-meta strong {
+    color: #0d6efd;
+}
+
+.recipe-card h4 {
+    color: #343a40;
+    margin-bottom: 1rem;
+}

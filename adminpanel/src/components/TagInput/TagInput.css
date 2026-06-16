@@ -1,0 +1,12 @@
+.tag-input-container .badge {
+    font-size: 0.9rem;
+    padding: 0.5em 0.75em;
+    display: inline-flex;
+    align-items: center;
+}
+
+.tag-input-container .btn-close {
+    font-size: 0.6rem;
+    padding: 0.5em;
+    cursor: pointer;
+}
