@@ -1,5 +1,5 @@
 package in.pradeep.foodiesapi.service;
-
+import in.pradeep.foodiesapi.io.FoodRecommendationResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +15,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import in.pradeep.foodiesapi.entity.FoodEntity;
+import in.pradeep.foodiesapi.entity.OrderEntity;
+import in.pradeep.foodiesapi.repository.FoodRepository;
+import in.pradeep.foodiesapi.repository.OrderRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,26 +30,55 @@ import java.util.Map;
 public class AiGenerationService {
 
     private final RestTemplate restTemplate;
+    private final FoodRepository foodRepository;
+private final OrderRepository orderRepository;
+private final UserService userService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    public AiGenerationService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+   public AiGenerationService(
+        RestTemplate restTemplate,
+        FoodRepository foodRepository,
+        OrderRepository orderRepository,
+        UserService userService
+) {
+    this.restTemplate = restTemplate;
+    this.foodRepository = foodRepository;
+    this.orderRepository = orderRepository;
+    this.userService = userService;
+}
 
     public AiSuggestionResponse generateSuggestions(String foodName, String category) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + geminiApiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey;
 
-        String prompt = "You are an expert food content writer.\n" +
-                "Generate 3 short, attractive, and mouth-watering menu descriptions for a dish.\n" +
-                "Make them unique, creative, and under 40 words each.\n" +
-                "Dish Name: " + foodName + "\n" +
-                "Category: " + category + "\n" +
-                "Also, provide 5 SEO-friendly tags and 5 keywords.\n" +
-                "Format the entire response as a single, valid JSON object with three keys: 'descriptions', 'tags', and 'keywords'. Each key should have an array of strings as its value.";
+       String prompt =
+        "You are a professional restaurant menu copywriter and food marketing expert.\n" +
+        "Dish Name: " + foodName + "\n" +
+        "Category: " + category + "\n\n" +
 
+        "Generate exactly 3 unique menu descriptions.\n" +
+        "Descriptions must be specific to the given dish name and category.\n" +
+        "Do not invent other dishes.\n" +
+        "Do not mix cuisines.\n" +
+        "Make descriptions realistic, appetizing and restaurant-quality.\n" +
+        "Each description should be 20-35 words.\n" +
+        "Highlight taste, texture, ingredients and serving experience.\n" +
+        "Avoid repetition between descriptions.\n\n" +
+
+        "Also generate:\n" +
+        "- 5 SEO tags\n" +
+        "- 5 SEO keywords\n\n" +
+
+        "Return ONLY valid JSON in this format:\n" +
+        "{\n" +
+        "  \"descriptions\": [\"desc1\", \"desc2\", \"desc3\"],\n" +
+        "  \"tags\": [\"tag1\", \"tag2\", \"tag3\", \"tag4\", \"tag5\"],\n" +
+        "  \"keywords\": [\"keyword1\", \"keyword2\", \"keyword3\", \"keyword4\", \"keyword5\"]\n" +
+        "}\n" +
+        "Do not return markdown, explanations or extra text.";
+        
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -87,7 +120,7 @@ public class AiGenerationService {
 
 
     public RecipeDTO generateRecipe(String dishName) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + geminiApiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey;
 
         String prompt = "You are a helpful cooking assistant named ChefAI.\n" +
                 "Provide a recipe for the dish: " + dishName + ".\n" +
@@ -198,7 +231,93 @@ public class AiGenerationService {
             return baos.toByteArray();
         }
     }
+public FoodRecommendationResponse getFoodRecommendations() {
 
+    String userId = userService.findByUserId();
+
+    List<OrderEntity> orders = orderRepository.findByUserId(userId);
+
+    if (orders.isEmpty()) {
+        return FoodRecommendationResponse.builder()
+                .recommendations(List.of())
+                .build();
+    }
+
+    StringBuilder orderedFoods = new StringBuilder();
+
+    for (OrderEntity order : orders) {
+        order.getOrderedItems().forEach(item ->
+                orderedFoods.append(item.getName()).append("\n"));
+    }
+
+    List<FoodEntity> allFoods = foodRepository.findAll();
+
+    StringBuilder availableFoods = new StringBuilder();
+
+    allFoods.forEach(food ->
+            availableFoods.append(food.getName()).append("\n"));
+
+    String prompt =
+            "User previously ordered:\n" +
+            orderedFoods +
+            "\n\nAvailable menu items:\n" +
+            availableFoods +
+            "\n\n" +
+            "Recommend 6 foods.\n" +
+            "Rules:\n" +
+            "1. Recommend similar variants.\n" +
+            "2. Recommend complementary foods.\n" +
+            "3. Do not recommend exact same foods.\n" +
+            "4. Recommend only from available menu.\n" +
+            "5. Return JSON only.\n\n" +
+            "Format:\n" +
+            "{ \"recommendations\": [\"food1\",\"food2\"] }";
+
+    try {
+
+        String url =
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key="
+                        + geminiApiKey;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> textPart = Map.of("text", prompt);
+        Map<String, Object> content = Map.of("parts",
+                Collections.singletonList(textPart));
+        Map<String, Object> requestBody = Map.of("contents",
+                Collections.singletonList(content));
+
+        HttpEntity<Map<String, Object>> entity =
+                new HttpEntity<>(requestBody, headers);
+
+        String response =
+                restTemplate.postForObject(url, entity, String.class);
+
+        JsonNode rootNode = objectMapper.readTree(response);
+
+        JsonNode textNode =
+                rootNode.at("/candidates/0/content/parts/0/text");
+
+        String rawText = textNode.asText();
+
+        String cleanJson =
+                rawText.replace("```json", "")
+                        .replace("```", "")
+                        .trim();
+
+        return objectMapper.readValue(
+                cleanJson,
+                FoodRecommendationResponse.class
+        );
+
+    } catch (Exception e) {
+
+        return FoodRecommendationResponse.builder()
+                .recommendations(List.of())
+                .build();
+    }
+}
 
 
 }

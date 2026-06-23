@@ -31,20 +31,36 @@ public class SecurityConfig {
 
     private final AppUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        http
-                .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth.requestMatchers
-                                ("/api/register", "/api/login", "/api/foods/**", "/api/orders/all",
-                                        "/api/orders/status/**","/uploads/**","/api/ai/generate-suggestions").permitAll()
-                        .anyRequest().authenticated())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+            .cors(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> auth
+                    .anyRequest().permitAll()
+            )
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            );
+
+    return http.build();
+}
+
+    // @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    //     http
+    //             .cors(Customizer.withDefaults())
+    //             .csrf(AbstractHttpConfigurer::disable)
+    //             // .authorizeHttpRequests(auth -> auth.requestMatchers
+    //             //                 ("/api/register", "/api/login", "/api/foods/**", "/api/orders/all",
+    //             //                         "/api/orders/status/**","/uploads/**","/api/ai/generate-suggestions").permitAll()
+    //             //         .anyRequest().authenticated())
+    //             .authorizeHttpRequests(auth -> auth
+    //     .anyRequest().permitAll())
+    //             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    //           //  .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    //     return http.build();
+    // }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

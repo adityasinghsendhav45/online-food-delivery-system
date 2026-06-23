@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import in.pradeep.foodiesapi.io.FoodRecommendationResponse;
 
 import java.io.IOException;
 
@@ -46,6 +47,14 @@ public class AiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @GetMapping("/recommendations")
+public ResponseEntity<FoodRecommendationResponse> getRecommendations() {
+
+    FoodRecommendationResponse response =
+            aiGenerationService.getFoodRecommendations();
+
+    return ResponseEntity.ok(response);
+}
 
 
     @PostMapping("/recipe/pdf") // Changed from GetMapping to PostMapping

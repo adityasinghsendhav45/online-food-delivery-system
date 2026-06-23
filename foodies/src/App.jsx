@@ -10,6 +10,7 @@ import PlaceOrder from "./pages/PlaceOrder/PlaceOrder";
 import Login from "./components/Login/Login";
 import Register from "./components/Register/Register";
 import ChefAI from "./pages/ChefAI/ChefAI";
+import RecipeGenerator from "./pages/RecipeGenerator/RecipeGenerator";
 import { ToastContainer } from "react-toastify";
 import MyOrders from "./pages/MyOrders/MyOrders";
 import { StoreContext } from "./context/StoreContext";
@@ -38,6 +39,10 @@ const App = () => {
         <Route path="/order" element={<ProtectedRoute><PlaceOrder /></ProtectedRoute>} />
         <Route path="/myorders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
         <Route path="/chefai" element={<ProtectedRoute><ChefAI /></ProtectedRoute>} />
+        <Route
+  path="/recipe-generator"
+  element={<ProtectedRoute><RecipeGenerator /></ProtectedRoute>}
+/>
    
       </Routes>
     </div>
