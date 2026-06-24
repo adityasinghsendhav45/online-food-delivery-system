@@ -35,10 +35,15 @@ export const StoreContextProvider = (props) => {
     });
   };
 
-  const loadCartData = async (token) => {
+ const loadCartData = async (token) => {
+  try {
     const items = await getCartData(token);
-    setQuantities(items);
-  };
+    setQuantities(items || {});
+  } catch (error) {
+    console.error("Cart Error", error);
+    setQuantities({});
+  }
+};
 
   const contextValue = {
     foodList,

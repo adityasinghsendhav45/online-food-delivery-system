@@ -173,8 +173,9 @@ const Menubar = () => {
   const { quantities, token, setToken, setQuantities } = useContext(StoreContext);
   const navigate = useNavigate();
   const location = useLocation(); // Get the current location
-
-  const uniqueItemsInCart = Object.values(quantities).filter((qty) => qty > 0).length;
+const uniqueItemsInCart = Object.values(quantities || {}).filter(
+  (qty) => qty > 0
+).length;
 
   const logout = () => {
     localStorage.removeItem("token");
