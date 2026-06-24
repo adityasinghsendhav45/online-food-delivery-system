@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = 'http://localhost:8080/api/foods';
+const API_URL = 'https://foodies-backend-production-edc1.up.railway.app/api/foods';
 
 export const addFood = async (foodData, image) => {
     const formData = new FormData();

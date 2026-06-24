@@ -85,7 +85,7 @@ private Cloudinary cloudinary;
 //            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 //
 //            // Return relative path for frontend
-//            return "http://localhost:8080/uploads/" + filename;
+//            return "https://foodies-backend-production-edc1.up.railway.app/uploads/" + filename;
 //        } catch (IOException ex) {
 //            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not store file: " + ex.getMessage());
 //        }
