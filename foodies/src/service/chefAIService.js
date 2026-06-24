@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = 'http://localhost:8080/api/ai';
+const API_URL = 'https://foodies-backend-production-edc1.up.railway.app/api/ai';
 
 export const fetchRecipe = async (dishName, token) => {
     try {
@@ -18,7 +18,7 @@ export const fetchRecipe = async (dishName, token) => {
 export const downloadRecipePdf = async (dishName, recipe, token) => {
     try {
         // Change to axios.post
-        const response = await axios.post(`http://localhost:8080/api/ai/recipe/pdf`, 
+        const response = await axios.post(`https://foodies-backend-production-edc1.up.railway.app/api/ai/recipe/pdf`, 
             recipe, // The recipe object is now the request body
             {
                 params: { dishName }, // dishName is still a URL parameter
